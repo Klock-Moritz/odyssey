@@ -36,7 +36,8 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
   ...props
 }) => {
   const [internalUrl, setInternalUrl] = React.useState<string>(
-    String(urlTextField?.defaultValue));
+    urlTextField?.defaultValue ? String(urlTextField?.defaultValue) : ""
+  );
 
   const [internalRequestInit, setInternalRequestInit] = React.useState<RequestInit>({
     method: requestMethodSelect?.defaultValue ?? "GET",
