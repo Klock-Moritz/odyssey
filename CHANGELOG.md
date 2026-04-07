@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial version of Odyssey Hypermedia Explorer.
 - Supports generic response viewing and creation.
+- Includes direct editing of the response and sending a subsequent PUT request.
 - Displays response headers and parsed links from headers.
 - Add form viewer for JSON-based responses.
 - Add support for HAL-JSON media type, which displays links and embedded

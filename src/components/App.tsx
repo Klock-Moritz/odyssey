@@ -17,12 +17,14 @@ const App: React.FC<AppProps> = ({
   const [response, setResponse] = useState<Response>()
   const [error, setError] = useState<unknown>()
 
-  async function onFetchRequest(url: string, options?: RequestInit) {
+  async function onFetchRequest(url: string, options?: RequestInit, keepForEdit: boolean = false) {
     try {
       setUrl(url)
       setRequestInit(options ?? { method: "GET" })
-      setResponse(await fetch(url, options))
-      setError(undefined)
+      if (!keepForEdit) {
+        setResponse(await fetch(url, options))
+        setError(undefined)
+      }
     } catch (error) {
       setResponse(undefined)
       setError(error)

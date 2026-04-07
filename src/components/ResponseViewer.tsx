@@ -7,10 +7,10 @@ import { GenericTextViewer } from "./viewers/GenericTextViewer";
 import { JsonViewer } from "./viewers/JsonViewer";
 import type { JsonSchema, UISchemaElement } from "@jsonforms/core";
 import { CsvViewer } from "./viewers/CsvViewer";
-import { TabGroupEntry } from "./TabGroup";
+import { TabGroupEntry, type TabGroupEntryProps } from "./TabGroup";
 import parseLinks from "../lib/parse-link-header";
 import { HyperlinkViewer } from "./HyperlinkViewer";
-import { getStructuredMediaTypePredicate } from "../lib/media-type";
+import { getStructuredMediaTypePredicate, MediaType } from "../lib/media-type";
 import { isHalResource, normalizeHalLinks, type HalResource } from "../lib/hal";
 import { HalLinkViewer } from "./viewers/HalLinkViewer";
 import { HalEmbeddedViewer } from "./viewers/HalEmbeddedViewer";
@@ -18,7 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export type ResponseViewerProps = StackProps & {
   response: Response;
-  onFetchRequest?: (url: string, options?: RequestInit) => void,
+  onFetchRequest?: (url: string, options?: RequestInit, keepForEdit?: boolean) => void,
 }
 
 export const ResponseViewer: React.FC<ResponseViewerProps> = ({
@@ -26,6 +26,51 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
   onFetchRequest,
   ...props
 }) => {
+  const updateDataHandler = React.useCallback((data: any, keepForEdit: boolean) => {
+    onFetchRequest?.(response.url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": response.headers.get("Content-Type") ?? "application/octet-stream",
+      },
+      body: data,
+    }, keepForEdit)
+  }, [onFetchRequest, response]);
+
+  const viewers = React.useMemo<{
+    predicate: (mediaType: MediaType) => boolean;
+    renderer: (response: Response, mediaType: MediaType) => Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>;
+  }[]>(() => [
+    {
+      predicate: mt => mt.type === "application" && mt.innerSubtype === "hal" && mt.structuredSyntaxSuffix === "json",
+      renderer: async response => await createHalViewer(await response.json(), onFetchRequest, updateDataHandler)
+    },
+    {
+      predicate: getStructuredMediaTypePredicate("application", "json"),
+      renderer: async response => await createJsonViewers(await response.json(), undefined, updateDataHandler)
+    },
+    {
+      predicate: getStructuredMediaTypePredicate("text", "csv"),
+      renderer: async (response, mediaType) => createTabularViewers(
+        await response.text(), ',',
+        mediaType.parameters.get("header") === "present", "Raw CSV", updateDataHandler
+      ),
+    },
+    {
+      predicate: getStructuredMediaTypePredicate("text", "tab-separated-values"),
+      renderer: async response => createTabularViewers(
+        await response.text(), '\t', true, "Raw TSV", updateDataHandler
+      ),
+    },
+    {
+      predicate: () => true,
+      renderer: async (response, mediaType) => createTextViewer(
+        'Content', await response.text(),
+        mediaType.structuredSyntaxSuffix || mediaType.innerSubtype,
+        updateDataHandler
+      )
+    }
+  ], [onFetchRequest, updateDataHandler]);
+
   return (
     <Stack {...props} spacing={2}>
       <ResponseStatusDisplay status={response.status}
@@ -45,36 +90,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
             onLinkClick={link => onFetchRequest?.(link.url, createRequestInitFromLink(link))} />
         )
       }
-      <ResponseBodyViewer response={response} viewers={[
-        {
-          predicate: mt => mt.type === "application" && mt.innerSubtype === "hal" && mt.structuredSyntaxSuffix === "json",
-          renderer: async response => await createHalViewer(await response.json(), onFetchRequest)
-        },
-        {
-          predicate: getStructuredMediaTypePredicate("application", "json"),
-          renderer: async response => await createJsonViewers(await response.json())
-        },
-        {
-          predicate: getStructuredMediaTypePredicate("text", "csv"),
-          renderer: async (response, mediaType) => createTabularViewers(
-            await response.text(), ',',
-            mediaType.parameters.get("header") === "present", "Raw CSV"
-          ),
-        },
-        {
-          predicate: getStructuredMediaTypePredicate("text", "tab-separated-values"),
-          renderer: async response => createTabularViewers(
-            await response.text(), '\t', true, "Raw TSV"
-          ),
-        },
-        {
-          predicate: () => true,
-          renderer: async (response, mediaType) => createTextViewer(
-            'Content', await response.text(),
-            mediaType.structuredSyntaxSuffix || mediaType.innerSubtype
-          )
-        }
-      ]} />
+      <ResponseBodyViewer response={response} viewers={viewers} />
     </Stack>
   )
 }
@@ -94,16 +110,16 @@ function createRequestInitFromLink(link: Record<string, any>): RequestInit {
   };
 }
 
-function createTabularViewers(data: string, delimiter: string, header: boolean, textLabel: string) {
+function createTabularViewers(data: string, delimiter: string, header: boolean, textLabel: string, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
   return [
     <TabGroupEntry label="Table">
       <CsvViewer text={data} delimiter={delimiter} header={header} />
     </TabGroupEntry>,
-    createTextViewer(textLabel, data)
+    createTextViewer(textLabel, data, undefined, onUpdateData)
   ];
 }
 
-async function createJsonViewers(data: any, rawData?: any) {
+async function createJsonViewers(data: any, rawData?: any, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
   const rawJsonString = JSON.stringify(rawData ?? data, undefined, 2);
   let schema: JsonSchema | undefined = undefined;
   let uischema: UISchemaElement | undefined = undefined;
@@ -130,30 +146,31 @@ async function createJsonViewers(data: any, rawData?: any) {
         <JsonViewer data={cleanJsonObject(data)} schema={schema} uischema={uischema} />
       </TabGroupEntry>
     ),
-    createTextViewer("Raw JSON", rawJsonString, "json")
+    createTextViewer("Raw JSON", rawJsonString, "json", onUpdateData)
   ].filter(viewer => viewer !== null);
 }
 
-function createTextViewer(label: string, data: any, language?: string) {
+function createTextViewer(label: string, data: any, language?: string, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
   return (
     <TabGroupEntry label={label}>
-      <GenericTextViewer language={language} data={typeof data === "string" ? data : JSON.stringify(data, undefined, 2)} />
+      <GenericTextViewer language={language} data={data} onUpdateData={onUpdateData} />
     </TabGroupEntry>
   )
 }
 
 export async function createHalViewer(rawData: any,
-  onFetchRequest?: (url: string, options?: RequestInit) => void) {
+  onFetchRequest?: (url: string, options?: RequestInit) => void,
+  onUpdateData?: (data: any, keepForEdit: boolean) => void) {
   if (isHalResource(rawData)) {
     const data = cleanHalObject(rawData);
-    const viewers = await createJsonViewers(data, rawData);
+    const viewers = await createJsonViewers(data, rawData, onUpdateData);
 
     if (rawData._embedded) {
       viewers.splice(0, 0, (
         <TabGroupEntry label="Embedded" key="hal-embedded">
           <HalEmbeddedViewer resource={rawData} onLinkClick={(href, _rel, link) =>
             onFetchRequest?.(href, createRequestInitFromLink(link))}
-            childViewer={child => createHalViewer(child, onFetchRequest)} />
+            childViewer={child => createHalViewer(child, onFetchRequest, onUpdateData)} />
         </TabGroupEntry>
       ));
     }
@@ -170,7 +187,7 @@ export async function createHalViewer(rawData: any,
 
     return viewers;
   } else {
-    return await createJsonViewers(rawData);
+    return await createJsonViewers(rawData, rawData, onUpdateData);
   }
 }
 

@@ -22,23 +22,33 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
   if (!mediaTypeString) {
     return undefined;
   }
-  const mediaType = new MediaType(mediaTypeString);
+  const mediaType = React.useMemo(() => new MediaType(mediaTypeString), [mediaTypeString]);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function chooseViewer() {
       for (const viewer of viewers) {
         if (viewer.predicate(mediaType)) {
           const entries = await viewer.renderer(response, mediaType);
-          setChildren(Array.isArray(entries) ? entries : [entries]);
+          if (!cancelled) {
+            setChildren(Array.isArray(entries) ? entries : [entries]);
+          }
           return;
         }
       }
-      setChildren([]);
+      if (!cancelled) {
+        setChildren([]);
+      }
     }
 
     if (!response.bodyUsed) {
       chooseViewer();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [response, viewers, mediaType])
 
   if (children === undefined) {

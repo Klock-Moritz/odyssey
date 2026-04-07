@@ -18,7 +18,7 @@ export const Default: Story = {
   args: {
     response: {
       headers: new Headers({
-        "Content-Type": "application/json; charset=utf-8",
+        "Content-Type": "text/plain; charset=utf-8",
         "Content-Length": "697",
         "Link": '<https://api.example.com/items?page=2>; rel="next"; type="application/json", <https://api.example.com/items?page=5>; rel="last"; type="application/json"'
       }),
