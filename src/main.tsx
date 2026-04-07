@@ -11,7 +11,7 @@ loader.config({ monaco })
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
-      <App />
+      <App defaultUrl={new URLSearchParams(window.location.search).get('url') ?? undefined} />
     </ThemeProvider>
   </StrictMode>,
 )
