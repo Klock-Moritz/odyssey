@@ -1,8 +1,22 @@
 {
   "name": "odyssey",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
+  "description": "A sophisticated client for RESTful web services that use HATEOAS",
+  "keywords": [
+    "web-api",
+    "hypermedia",
+    "hal",
+    "rest-api-client"
+  ],
+  "homepage": "https://github.com/Klock-Moritz/odyssey",
+  "license": "MIT",
+  "author": "Moritz Klock <moritz.klock@student.kit.edu> (https://github.com/Klock-Moritz)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Klock-Moritz/odyssey.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
