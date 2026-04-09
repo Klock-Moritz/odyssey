@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { ResponseBodyViewer } from './ResponseBodyViewer';
-import { createHeaders } from './HeaderViewer.stories';
 import { TabGroupEntry } from './TabGroup';
 import { Typography } from '@mui/material';
 import { MediaType } from '../utils/media-type';
