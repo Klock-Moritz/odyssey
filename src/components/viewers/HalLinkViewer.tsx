@@ -1,4 +1,4 @@
-import { type NormalizedHalLinks, type HalLink as HalLinkType } from "../../lib/hal";
+import { type NormalizedHalLinks, type HalLink as HalLinkType } from "../../utils/hal";
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
 import { HalLink } from "../HalLink";
 import { Link } from "@mui/material";

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { RequestCreator } from './RequestCreator'
 import { ResponseViewer } from './ResponseViewer'
 import { Alert, Stack } from '@mui/material'
+import { responsePipeline, type ProcessedResponse } from '../model/response-pipeline'
 
 export type AppProps = {
   defaultUrl?: string,
@@ -14,7 +15,7 @@ const App: React.FC<AppProps> = ({
 }) => {
   const [url, setUrl] = useState<string>(defaultUrl ?? "")
   const [requestInit, setRequestInit] = useState<RequestInit>(defaultRequestInit ?? { method: "GET" })
-  const [response, setResponse] = useState<Response>()
+  const [response, setResponse] = useState<ProcessedResponse>()
   const [error, setError] = useState<unknown>()
 
   async function onFetchRequest(url: string, options?: RequestInit, keepForEdit: boolean = false) {
@@ -22,12 +23,13 @@ const App: React.FC<AppProps> = ({
       setUrl(url)
       setRequestInit(options ?? { method: "GET" })
       if (!keepForEdit) {
-        setResponse(await fetch(url, options))
+        setResponse(await responsePipeline.apply(await fetch(url, options)));
         setError(undefined)
       }
     } catch (error) {
       setResponse(undefined)
       setError(error)
+      console.error(error);
     }
   }
 

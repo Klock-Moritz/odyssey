@@ -18,18 +18,24 @@ export const Default: Story = {
   args: {
     links: [
       {
-        rel: "self",
         url: "https://example.com/api/items",
+        parameters: {
+          rel: "self",
+        }
       },
       {
-        rel: "alternate",
         url: "https://example.com/api/items",
-        type: "application/xml"
+        parameters: {
+          rel: "alternate",
+          type: "application/xml"
+        }
       },
       {
-        rel: "index",
         url: "https://example.com/api/",
-        title: "API index"
+        parameters: {
+          rel: "index",
+          title: "API index"
+        }
       }
     ]
   }

@@ -1,5 +1,5 @@
 import { Stack, type StackProps } from "@mui/material";
-import { type Link } from "../lib/parse-link-header";
+import { type Link } from "../model/links";
 import { Hyperlink } from "./Hyperlink";
 
 export type HyperlinkViewerProps = StackProps & {

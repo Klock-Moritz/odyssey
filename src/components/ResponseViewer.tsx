@@ -8,16 +8,16 @@ import { JsonViewer } from "./viewers/JsonViewer";
 import type { JsonSchema, UISchemaElement } from "@jsonforms/core";
 import { CsvViewer } from "./viewers/CsvViewer";
 import { TabGroupEntry, type TabGroupEntryProps } from "./TabGroup";
-import parseLinks from "../lib/parse-link-header";
 import { HyperlinkViewer } from "./HyperlinkViewer";
-import { getStructuredMediaTypePredicate, MediaType } from "../lib/media-type";
-import { isHalResource, normalizeHalLinks, type HalResource } from "../lib/hal";
+import { getStructuredMediaTypePredicate, MediaType } from "../utils/media-type";
+import { isHalResource, normalizeHalLinks, type HalResource } from "../utils/hal";
 import { HalLinkViewer } from "./viewers/HalLinkViewer";
 import { HalEmbeddedViewer } from "./viewers/HalEmbeddedViewer";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import type { ProcessedResponse } from "../model/response-pipeline";
 
 export type ResponseViewerProps = StackProps & {
-  response: Response;
+  response: ProcessedResponse;
   onFetchRequest?: (url: string, options?: RequestInit, keepForEdit?: boolean) => void,
 }
 
@@ -30,7 +30,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
     onFetchRequest?.(response.url, {
       method: "PUT",
       headers: {
-        "Content-Type": response.headers.get("Content-Type") ?? "application/octet-stream",
+        "Content-Type": "Content-Type" in response.headers ? response.headers["Content-Type"] : "application/octet-stream",
       },
       body: data,
     }, keepForEdit)
@@ -38,33 +38,33 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
 
   const viewers = React.useMemo<{
     predicate: (mediaType: MediaType) => boolean;
-    renderer: (response: Response, mediaType: MediaType) => Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>;
+    renderer: (response: ProcessedResponse, mediaType: MediaType) => Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>;
   }[]>(() => [
     {
       predicate: mt => mt.type === "application" && mt.innerSubtype === "hal" && mt.structuredSyntaxSuffix === "json",
-      renderer: async response => await createHalViewer(await response.json(), onFetchRequest, updateDataHandler)
+      renderer: async response => await createHalViewer(JSON.parse(response.text ?? "null"), onFetchRequest, updateDataHandler)
     },
     {
       predicate: getStructuredMediaTypePredicate("application", "json"),
-      renderer: async response => await createJsonViewers(await response.json(), undefined, updateDataHandler)
+      renderer: async response => await createJsonViewers(JSON.parse(response.text ?? "null"), undefined, updateDataHandler)
     },
     {
       predicate: getStructuredMediaTypePredicate("text", "csv"),
       renderer: async (response, mediaType) => createTabularViewers(
-        await response.text(), ',',
+        response.text ?? "", ',',
         mediaType.parameters.get("header") === "present", "Raw CSV", updateDataHandler
       ),
     },
     {
       predicate: getStructuredMediaTypePredicate("text", "tab-separated-values"),
       renderer: async response => createTabularViewers(
-        await response.text(), '\t', true, "Raw TSV", updateDataHandler
+        response.text ?? "", '\t', true, "Raw TSV", updateDataHandler
       ),
     },
     {
       predicate: () => true,
       renderer: async (response, mediaType) => createTextViewer(
-        'Content', await response.text(),
+        'Content', response.text ?? "",
         mediaType.structuredSyntaxSuffix || mediaType.innerSubtype,
         updateDataHandler
       )
@@ -81,13 +81,13 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
           <Typography>Response Headers</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <HeaderViewer headers={response.headers} />
+          <HeaderViewer headers={new Headers(response.headers)} />
         </AccordionDetails>
       </Accordion>
       {
-        response.headers.has("Link") && (
-          <HyperlinkViewer links={parseLinks(response.headers.get("Link")!)}
-            onLinkClick={link => onFetchRequest?.(link.url, createRequestInitFromLink(link))} />
+        response.links && (
+          <HyperlinkViewer links={response.links}
+            onLinkClick={link => onFetchRequest?.(link.url, createRequestInitFromLink(link.parameters))} />
         )
       }
       <ResponseBodyViewer response={response} viewers={viewers} />

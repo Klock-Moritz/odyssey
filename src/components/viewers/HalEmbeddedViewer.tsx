@@ -1,5 +1,5 @@
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
-import type { HalResource, HalLink as HalLinkType } from "../../lib/hal";
+import type { HalResource, HalLink as HalLinkType } from "../../utils/hal";
 import utpl from "uri-templates";
 import { HalLink } from "../HalLink";
 import React from "react";

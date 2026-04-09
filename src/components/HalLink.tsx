@@ -1,5 +1,5 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Link, Tooltip, type LinkProps } from "@mui/material";
-import type { HalLink as HalLinkType } from "../lib/hal";
+import type { HalLink as HalLinkType } from "../utils/hal";
 import React from "react";
 import { UriTemplateEditor } from "./UriTemplateEditor";
 import { Warning } from "@mui/icons-material";

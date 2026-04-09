@@ -1,13 +1,14 @@
 import { Typography } from "@mui/material";
 import React, { useEffect } from "react";
 import { TabGroup, type TabGroupEntryProps } from "./TabGroup";
-import { MediaType } from "../lib/media-type";
+import { MediaType } from "../utils/media-type";
+import { type ProcessedResponse } from "../model/response-pipeline";
 
 export type ResponseBodyViewerProps = {
-  response: Response,
+  response: ProcessedResponse,
   viewers: {
     predicate: (mediaType: MediaType) => boolean,
-    renderer: (response: Response, mediaType: MediaType) =>
+    renderer: (response: ProcessedResponse, mediaType: MediaType) =>
       Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>,
   }[]
 }
@@ -18,16 +19,16 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
 }) => {
   const [children, setChildren] = React.useState<React.ReactElement<TabGroupEntryProps>[]>();
 
-  const mediaTypeString = response.headers.get("content-type");
-  if (!mediaTypeString) {
-    return undefined;
-  }
-  const mediaType = React.useMemo(() => new MediaType(mediaTypeString), [mediaTypeString]);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function chooseViewer() {
+    const mediaType = response.contentType;
+    if (!mediaType) {
+      return undefined;
+    }
+
+    async function chooseViewer(mediaType: MediaType) {
       for (const viewer of viewers) {
         if (viewer.predicate(mediaType)) {
           const entries = await viewer.renderer(response, mediaType);
@@ -43,13 +44,13 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
     }
 
     if (!response.bodyUsed) {
-      chooseViewer();
+      chooseViewer(mediaType);
     }
 
     return () => {
       cancelled = true;
     };
-  }, [response, viewers, mediaType])
+  }, [response, viewers])
 
   if (children === undefined) {
     return;
@@ -57,7 +58,7 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
     return (
       <Typography>
         No applicable viewer found for media type <code>
-          {mediaType.essence}
+          {response.contentType?.essence}
         </code>.
       </Typography>
     );

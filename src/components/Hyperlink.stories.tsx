@@ -13,8 +13,10 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     link: {
-      rel: "self",
       url: "https://example.com/api/items",
+      parameters: {
+        rel: "self",
+      }
     }
   }
 };
@@ -22,8 +24,10 @@ export const Default: Story = {
 export const OverrideClickingBehavior: Story = {
   args: {
     link: {
-      rel: "self",
       url: "https://example.com/api/items",
+      parameters: {
+        rel: "self",
+      }
     },
     onLinkClick: () => alert("Link clicked!")
   }
@@ -32,9 +36,11 @@ export const OverrideClickingBehavior: Story = {
 export const WithTitle: Story = {
   args: {
     link: {
-      "rel": "self",
       "url": "https://example.com/api/items",
-      "title": "All items"
+      "parameters": {
+        "rel": "self",
+        "title": "All items"
+      }
     }
   }
 };
@@ -42,11 +48,13 @@ export const WithTitle: Story = {
 export const AdditionalInformation: Story = {
   args: {
     link: {
-      "rel": "self",
       "url": "https://example.com/api/items",
-      "title": "All items",
-      "type": "application/json",
-      "hreflang": "en"
+      "parameters": {
+        "rel": "self",
+        "title": "All items",
+        "type": "application/json",
+        "hreflang": "en"
+      }
     }
   }
 };

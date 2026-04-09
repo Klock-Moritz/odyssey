@@ -3,7 +3,7 @@ import { Stack, Dialog, DialogActions, DialogTitle, Button, DialogContent, Autoc
 import type { BodyContent } from "./RequestBodyEditor";
 import { TabGroup, type TabGroupEntryProps } from "./TabGroup";
 import React, { useEffect } from "react"
-import { MediaType } from "../lib/media-type";
+import { MediaType } from "../utils/media-type";
 
 export type EditorDefinition = {
   predicate: (contentType: MediaType) => boolean,

@@ -1,5 +1,5 @@
 import { Link, Tooltip } from '@mui/material';
-import { type Link as LinkType } from '../lib/parse-link-header';
+import { type Link as LinkType } from '../model/links';
 import { LabeledValueChip, type LabeledValueChipProps } from './LabeledValueChip';
 
 export type HyperlinkProps = Omit<LabeledValueChipProps, 'label' | 'value'> & {
@@ -12,8 +12,8 @@ export const Hyperlink: React.FC<HyperlinkProps> = ({
   onLinkClick,
   ...props
 }) => {
-  let additionalInfo: Record<string, string> = { ...link };
-  if ("title" in link) {
+  let additionalInfo: Record<string, string | undefined> = { ...link.parameters };
+  if ("title" in link.parameters) {
     delete additionalInfo.title;
   } else {
     delete additionalInfo.url;
@@ -25,7 +25,7 @@ export const Hyperlink: React.FC<HyperlinkProps> = ({
       ? Object.entries(additionalInfo).filter(([_key, value]) => !!value).map(([key, value]) => (
         <div>{`${key}: ${value}`}</div>
       )) : undefined}>
-      <LabeledValueChip {...props} label={link.rel} value={
+      <LabeledValueChip {...props} label={link.parameters.rel} value={
         <Link href={link.url} target="_blank" rel="noopener noreferrer"
           onClick={e => {
             if (onLinkClick) {
@@ -34,7 +34,7 @@ export const Hyperlink: React.FC<HyperlinkProps> = ({
             }
           }}
         >
-          {"title" in link ? link.title : link.url}
+          {"title" in link.parameters ? link.parameters.title : link.url}
         </Link>
       } />
     </Tooltip >
