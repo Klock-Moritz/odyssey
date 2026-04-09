@@ -43,9 +43,7 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
       }
     }
 
-    if (!response.bodyUsed) {
-      chooseViewer(mediaType);
-    }
+    chooseViewer(mediaType);
 
     return () => {
       cancelled = true;

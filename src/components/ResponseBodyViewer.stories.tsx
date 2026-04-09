@@ -4,6 +4,7 @@ import { ResponseBodyViewer } from './ResponseBodyViewer';
 import { createHeaders } from './HeaderViewer.stories';
 import { TabGroupEntry } from './TabGroup';
 import { Typography } from '@mui/material';
+import { MediaType } from '../utils/media-type';
 
 const meta = {
   component: ResponseBodyViewer,
@@ -16,45 +17,26 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     response: {
-      headers: new Headers({
+      headers: {
         'content-type': 'text/plain',
-      }),
+      },
+      contentType: new MediaType('text/plain'),
+      bodyUsed: false,
       ok: false,
       redirected: false,
       status: 0,
       statusText: '',
       type: 'basic',
       url: '',
-      clone: function (): Response {
-        throw new Error('Function not implemented.');
-      },
-      body: null,
-      bodyUsed: false,
-      arrayBuffer: function (): Promise<ArrayBuffer> {
-        throw new Error('Function not implemented.');
-      },
-      blob: function (): Promise<Blob> {
-        throw new Error('Function not implemented.');
-      },
-      bytes: function (): Promise<Uint8Array<ArrayBuffer>> {
-        throw new Error('Function not implemented.');
-      },
-      formData: function (): Promise<FormData> {
-        throw new Error('Function not implemented.');
-      },
-      json: function (): Promise<any> {
-        throw new Error('Function not implemented.');
-      },
-      text: function (): Promise<string> {
-        return Promise.resolve("Lorem ipsum dolor sit amet.")
-      }
+      text: 'Hello, world!',
+      links: [],
     },
     viewers: [
       {
         predicate: () => true,
         renderer: async (response) => (
           <TabGroupEntry label="Text">
-            <Typography>{await response.text()}</Typography>
+            <Typography>{response.text}</Typography>
           </TabGroupEntry>
         )
       }
@@ -65,38 +47,19 @@ export const Default: Story = {
 export const NoViewer: Story = {
   args: {
     response: {
-      headers: createHeaders({
+      headers: {
         "content-type": "application/json"
-      }),
+      },
+      contentType: new MediaType("application/json"),
       ok: false,
       redirected: false,
       status: 0,
       statusText: '',
       type: 'basic',
       url: '',
-      clone: function (): Response {
-        throw new Error('Function not implemented.');
-      },
-      body: null,
       bodyUsed: false,
-      arrayBuffer: function (): Promise<ArrayBuffer> {
-        throw new Error('Function not implemented.');
-      },
-      blob: function (): Promise<Blob> {
-        throw new Error('Function not implemented.');
-      },
-      bytes: function (): Promise<Uint8Array<ArrayBuffer>> {
-        throw new Error('Function not implemented.');
-      },
-      formData: function (): Promise<FormData> {
-        throw new Error('Function not implemented.');
-      },
-      json: function (): Promise<any> {
-        throw new Error('Function not implemented.');
-      },
-      text: function (): Promise<string> {
-        throw new Error('Function not implemented.');
-      }
+      text: null,
+      links: [],
     },
     viewers: []
   }
@@ -105,36 +68,17 @@ export const NoViewer: Story = {
 export const NoContentType: Story = {
   args: {
     response: {
-      headers: new Headers(),
+      headers: {},
+      contentType: null,
       ok: false,
       redirected: false,
       status: 0,
       statusText: '',
       type: 'basic',
       url: '',
-      clone: function (): Response {
-        throw new Error('Function not implemented.');
-      },
-      body: null,
       bodyUsed: false,
-      arrayBuffer: function (): Promise<ArrayBuffer> {
-        throw new Error('Function not implemented.');
-      },
-      blob: function (): Promise<Blob> {
-        throw new Error('Function not implemented.');
-      },
-      bytes: function (): Promise<Uint8Array<ArrayBuffer>> {
-        throw new Error('Function not implemented.');
-      },
-      formData: function (): Promise<FormData> {
-        throw new Error('Function not implemented.');
-      },
-      json: function (): Promise<any> {
-        throw new Error('Function not implemented.');
-      },
-      text: function (): Promise<string> {
-        throw new Error('Function not implemented.');
-      }
+      links: [],
+      text: null,
     },
     viewers: []
   }

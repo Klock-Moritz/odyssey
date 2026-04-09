@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A new processing pipeline for Response objects.
+- Utility functions for building the pipeline.
+
 ### Changed
 
+- Refactoring of the ResponseViewer: now uses the new processing pipeline.
 - Renamed `lib` directory to `utils`.
 
 ## [0.1.0] - 2026-04-07

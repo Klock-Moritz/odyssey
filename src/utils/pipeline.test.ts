@@ -47,10 +47,6 @@ describe("Pipeline", () => {
       name: string;
     }
 
-    interface UserWithAge extends User {
-      age: number;
-    }
-
     const pipeline = startPipeline<User>()
       .next((user) => ({ ...user, age: 30 }))
       .next((user) => ({ ...user, name: user.name.toUpperCase() }));
@@ -63,7 +59,7 @@ describe("Pipeline", () => {
   it("handles async operations with delays", async () => {
     const pipeline = startPipeline<number>()
       .nextAsync((x) => new Promise((resolve) => setTimeout(() => resolve(x * 2), 10)))
-      .nextAsync((x) => new Promise((resolve) => setTimeout(() => resolve(x + 5), 10)));
+      .nextAsync((x) => new Promise((resolve) => setTimeout(() => resolve((x as number) + 5), 10)));
 
     const result = await pipeline.apply(5);
 
