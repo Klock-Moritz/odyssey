@@ -23,7 +23,7 @@ const App: React.FC<AppProps> = ({
       setUrl(url)
       setRequestInit(options ?? { method: "GET" })
       if (!keepForEdit) {
-        setResponse(await responsePipeline.apply(await fetch(url, options)));
+        setResponse(await responsePipeline(await fetch(url, options)));
         setError(undefined)
       }
     } catch (error) {
