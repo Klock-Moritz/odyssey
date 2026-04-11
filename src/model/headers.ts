@@ -21,5 +21,5 @@ export function withHeader<T extends WithHeaders, U>(key: string, fn: (obj: T, v
 }
 
 export function withHeaderSet<T extends WithHeaders, K extends PropertyKey, V>(key: string, propertyKey: K, valueFn: (value: string) => V): (obj: T) => T | (T & { [key in K]: V }) {
-  return withHeader(key, setProperty(propertyKey, valueFn));
+  return condition(hasHeader(key), (obj: T) => setProperty<T, K, V>(propertyKey, valueFn(obj.headers[key]))(obj));
 }
