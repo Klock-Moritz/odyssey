@@ -29,6 +29,7 @@ export const Default: Story = {
       url: '',
       text: 'Hello, world!',
       links: [],
+      body: null,
     },
     viewers: [
       {
@@ -57,8 +58,9 @@ export const NoViewer: Story = {
       type: 'basic',
       url: '',
       bodyUsed: false,
-      text: null,
+      body: null,
       links: [],
+      text: null,
     },
     viewers: []
   }
@@ -68,7 +70,6 @@ export const NoContentType: Story = {
   args: {
     response: {
       headers: {},
-      contentType: null,
       ok: false,
       redirected: false,
       status: 0,
@@ -77,6 +78,7 @@ export const NoContentType: Story = {
       url: '',
       bodyUsed: false,
       links: [],
+      body: null,
       text: null,
     },
     viewers: []

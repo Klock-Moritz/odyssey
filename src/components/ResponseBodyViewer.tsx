@@ -23,8 +23,7 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
   useEffect(() => {
     let cancelled = false;
 
-    const mediaType = response.contentType;
-    if (!mediaType) {
+    if (!("contentType" in response)) {
       return undefined;
     }
 
@@ -43,14 +42,14 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
       }
     }
 
-    chooseViewer(mediaType);
+    chooseViewer(response.contentType);
 
     return () => {
       cancelled = true;
     };
   }, [response, viewers])
 
-  if (children === undefined) {
+  if (children === undefined || !("contentType" in response)) {
     return;
   } else if (children.length === 0) {
     return (
