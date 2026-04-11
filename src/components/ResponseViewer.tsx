@@ -85,7 +85,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
         </AccordionDetails>
       </Accordion>
       {
-        response.links && (
+        "links" in response && response.links.length > 0 && (
           <HyperlinkViewer links={response.links}
             onLinkClick={link => onFetchRequest?.(link.url, createRequestInitFromLink(link.parameters))} />
         )

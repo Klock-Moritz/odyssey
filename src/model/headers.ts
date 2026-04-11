@@ -1,18 +1,25 @@
+import { condition, setProperty } from "../utils/functions";
+
 export type WithHeadersClass = {
   headers: Headers,
 }
 
 export type WithHeaders = {
-  headers: { [key: string]: string },
+  headers: Record<string, string>,
 }
 
 export function replaceHeaders<T extends WithHeadersClass>(obj: T): Omit<T, "headers"> & WithHeaders {
-  const headersObj: { [key: string]: string } = {};
-  for (const [key, value] of obj.headers.entries()) {
-    headersObj[key] = value;
-  }
-  return {
-    ...obj,
-    headers: headersObj,
-  };
+  return setProperty<T, "headers", Record<string, string>>("headers", Object.fromEntries(obj.headers))(obj);
+}
+
+export function hasHeader<T extends WithHeaders>(key: string): (obj: T) => boolean {
+  return (obj: T) => key in obj.headers;
+}
+
+export function withHeader<T extends WithHeaders, U>(key: string, fn: (obj: T, value: string) => U): (obj: T) => T | U {
+  return condition(hasHeader(key), (obj: T) => fn(obj, obj.headers[key]));
+}
+
+export function withHeaderSet<T extends WithHeaders, K extends PropertyKey, V>(key: string, propertyKey: K, valueFn: (value: string) => V): (obj: T) => T | (T & { [key in K]: V }) {
+  return withHeader(key, setProperty(propertyKey, valueFn));
 }

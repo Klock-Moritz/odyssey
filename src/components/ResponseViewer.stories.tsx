@@ -42,6 +42,7 @@ export const Default: Story = {
           }
         }
       ],
+      body: null,
       redirected: false,
       status: 200,
       statusText: 'OK',

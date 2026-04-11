@@ -11,7 +11,7 @@ export type WithText = {
 
 export type TextResponse = ResponseLike & WithText;
 
-export async function readResponseBody<T extends WithBody & Partial<WithHeaders>>(response: T): Promise<Omit<T, "body"> & WithText> {
+export async function readResponseBody<T extends WithBody & Partial<WithHeaders>>(response: T): Promise<T & WithText> {
   if (response.body === null) {
     return {
       ...response,

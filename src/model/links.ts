@@ -1,5 +1,4 @@
 import parseLinkHeader from "../utils/parse-link-header";
-import type { WithHeaders } from "./headers";
 
 export type WithLinks = {
   links: Link[],
@@ -48,28 +47,10 @@ function removeDuplicateLinks(links: Link[]): Link[] {
   return uniqueLinks;
 }
 
-export function addLinks<T extends Partial<WithLinks>>
-  (obj: T, ...links: Link[]): T & WithLinks {
-
-  return {
-    ...obj,
-    links: removeDuplicateLinks(obj.links?.concat(links) || links),
-  };
-}
-
-export function extractLinksFromHeader<T extends Partial<WithLinks>
-  & WithHeaders>(response: T): T & WithLinks {
-
-  const linkHeader = "link" in response.headers ? response.headers.link : undefined;
-  if (linkHeader) {
-    try {
-      return addLinks(response, ...parseLinkHeader(linkHeader).map(({ url, ...parameters }) => ({
-        url,
-        parameters: parameters,
-      })));
-    } catch (error) {
-      console.warn("Failed to parse Link header:", error);
-    }
-  }
-  return { ...response, links: response.links || [] };
+export function extractLinksFromHeader(linkHeader: string): Link[] {
+  return removeDuplicateLinks(parseLinkHeader(linkHeader)
+    .map(({ url, ...parameters }) => ({
+      url,
+      parameters: parameters,
+    })));
 }
