@@ -2,11 +2,10 @@ import { Accordion, AccordionDetails, AccordionSummary, Stack, Typography, type 
 import React from "react";
 import { HeaderViewer } from "./HeaderViewer";
 import { ResponseStatusDisplay } from "./ResponseStatusDisplay";
-import { ResponseBodyViewer } from "./ResponseBodyViewer";
+import { ResponseBodyViewer, type ResponseWithBody } from "./ResponseBodyViewer";
 import { GenericTextViewer } from "./viewers/GenericTextViewer";
 import { JsonViewer } from "./viewers/JsonViewer";
 import type { JsonSchema, UISchemaElement } from "@jsonforms/core";
-import { CsvViewer } from "./viewers/CsvViewer";
 import { TabGroupEntry, type TabGroupEntryProps } from "./TabGroup";
 import { HyperlinkViewer } from "./HyperlinkViewer";
 import { getStructuredMediaTypePredicate, MediaType } from "../utils/media-type";
@@ -15,11 +14,19 @@ import { HalLinkViewer } from "./viewers/HalLinkViewer";
 import { HalEmbeddedViewer } from "./viewers/HalEmbeddedViewer";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { ProcessedResponse } from "../model/response-pipeline";
+import type { TabularData } from "../model/tabular-data";
+import { TableViewer } from "./viewers/TableViewer";
 
 export type ResponseViewerProps = StackProps & {
-  response: ProcessedResponse;
+  response: ProcessedResponse,
   onFetchRequest?: (url: string, options?: RequestInit, keepForEdit?: boolean) => void,
 }
+
+const emptyTable: TabularData<string, string> = {
+  hasHeader: false,
+  header: [],
+  records: [],
+};
 
 export const ResponseViewer: React.FC<ResponseViewerProps> = ({
   response,
@@ -38,7 +45,7 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
 
   const viewers = React.useMemo<{
     predicate: (mediaType: MediaType) => boolean;
-    renderer: (response: ProcessedResponse, mediaType: MediaType) => Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>;
+    renderer: (response: ResponseWithBody, mediaType: MediaType) => Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>;
   }[]>(() => [
     {
       predicate: mt => mt.type === "application" && mt.innerSubtype === "hal" && mt.structuredSyntaxSuffix === "json",
@@ -50,15 +57,14 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
     },
     {
       predicate: getStructuredMediaTypePredicate("text", "csv"),
-      renderer: async (response, mediaType) => createTabularViewers(
-        response.text ?? "", ',',
-        mediaType.parameters.get("header") === "present", "Raw CSV", updateDataHandler
+      renderer: async response => createTabularViewers(
+        response.text ?? "", "csv" in response ? response.csv : emptyTable, "Raw CSV", updateDataHandler
       ),
     },
     {
       predicate: getStructuredMediaTypePredicate("text", "tab-separated-values"),
       renderer: async response => createTabularViewers(
-        response.text ?? "", '\t', true, "Raw TSV", updateDataHandler
+        response.text ?? "", "tsv" in response ? response.tsv : emptyTable, "Raw TSV", updateDataHandler
       ),
     },
     {
@@ -90,7 +96,9 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
             onLinkClick={link => onFetchRequest?.(link.url, createRequestInitFromLink(link.parameters))} />
         )
       }
-      <ResponseBodyViewer response={response} viewers={viewers} />
+      {"text" in response && (
+        <ResponseBodyViewer response={response} viewers={viewers} />
+      )}
     </Stack>
   )
 }
@@ -110,10 +118,10 @@ function createRequestInitFromLink(link: Record<string, any>): RequestInit {
   };
 }
 
-function createTabularViewers(data: string, delimiter: string, header: boolean, textLabel: string, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
+function createTabularViewers(data: string, tabluarData: TabularData<string | number, string>, textLabel: string, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
   return [
     <TabGroupEntry label="Table">
-      <CsvViewer text={data} delimiter={delimiter} header={header} />
+      <TableViewer fields={tabluarData.header.map(String)} rows={tabluarData.records} />
     </TabGroupEntry>,
     createTextViewer(textLabel, data, undefined, onUpdateData)
   ];

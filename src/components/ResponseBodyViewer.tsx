@@ -3,12 +3,16 @@ import React, { useEffect } from "react";
 import { TabGroup, type TabGroupEntryProps } from "./TabGroup";
 import { MediaType } from "../utils/media-type";
 import { type ProcessedResponse } from "../model/response-pipeline";
+import type { WithContentType } from "../model/content-type";
+import type { WithText } from "../model/text";
+
+export type ResponseWithBody = ProcessedResponse & WithContentType & WithText;
 
 export type ResponseBodyViewerProps = {
-  response: ProcessedResponse,
+  response: ResponseWithBody,
   viewers: {
     predicate: (mediaType: MediaType) => boolean,
-    renderer: (response: ProcessedResponse, mediaType: MediaType) =>
+    renderer: (response: ResponseWithBody, mediaType: MediaType) =>
       Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>,
   }[]
 }
@@ -18,7 +22,6 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
   viewers
 }) => {
   const [children, setChildren] = React.useState<React.ReactElement<TabGroupEntryProps>[]>();
-
 
   useEffect(() => {
     let cancelled = false;

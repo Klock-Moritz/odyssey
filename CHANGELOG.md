@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactoring of the ResponseViewer: now uses the new processing pipeline.
 - Renamed `lib` directory to `utils`.
 
+### Fixed
+
+- Setting headers through the dialog caused the request to be sent.
+
 ## [0.1.0] - 2026-04-07
 
 ### Added

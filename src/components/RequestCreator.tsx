@@ -78,11 +78,11 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
   }
 
   return (
-    <form onSubmit={(event) => {
-      event.preventDefault();
-      submitForm();
-    }}>
-      <Stack {...props} gap={gap}>
+    <Stack {...props} gap={gap}>
+      <form onSubmit={(event) => {
+        event.preventDefault();
+        submitForm();
+      }}>
         <Stack direction="row" alignItems="center">
           <RequestMethodSelect id="method" required {...requestMethodSelect} size="small"
             sx={{
@@ -154,8 +154,8 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
             }}
             onDirectRequest={submitForm} />
         </Stack>
-        <HeaderEditor value={getHeaders()} onUpdateHeaders={headers => updateRequestInit({ headers })} />
-      </Stack>
-    </form>
+      </form>
+      <HeaderEditor value={getHeaders()} onUpdateHeaders={headers => updateRequestInit({ headers })} />
+    </Stack>
   )
 }

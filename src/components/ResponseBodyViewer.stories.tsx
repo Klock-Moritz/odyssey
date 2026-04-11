@@ -60,26 +60,7 @@ export const NoViewer: Story = {
       bodyUsed: false,
       body: null,
       links: [],
-      text: null,
-    },
-    viewers: []
-  }
-};
-
-export const NoContentType: Story = {
-  args: {
-    response: {
-      headers: {},
-      ok: false,
-      redirected: false,
-      status: 0,
-      statusText: '',
-      type: 'basic',
-      url: '',
-      bodyUsed: false,
-      links: [],
-      body: null,
-      text: null,
+      text: "Lorem ipsum dolor sit amet.",
     },
     viewers: []
   }
