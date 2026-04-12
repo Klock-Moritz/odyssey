@@ -23,3 +23,13 @@ export const Default: Story = {
     language: "json",
   },
 };
+
+export const WithoutUpdateFunction: Story = {
+  args: {
+    data: JSON.stringify({
+      "Test": "test"
+    }, undefined, 2),
+    language: "json",
+    onUpdateData: undefined,
+  },
+};

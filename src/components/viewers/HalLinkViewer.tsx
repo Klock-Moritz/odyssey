@@ -1,10 +1,10 @@
-import { type NormalizedHalLinks, type HalLink as HalLinkType } from "../../utils/hal";
+import { type HalLink as HalLinkType, type HalLinks, normalizeHalLinks } from "../../utils/hal";
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
 import { HalLink } from "../HalLink";
 import { Link } from "@mui/material";
 
 export type HalLinkViewerProps = Omit<DataGridProps, 'columns' | 'rows'> & {
-  links: NormalizedHalLinks,
+  links: HalLinks,
   onLinkClick?: (href: string, rel: string, link: HalLinkType) => void,
 }
 
@@ -34,7 +34,7 @@ export const HalLinkViewer: React.FC<HalLinkViewerProps> = ({
           </Link>
         )
       },
-    ]} rows={Object.entries(links)
+    ]} rows={Object.entries(normalizeHalLinks(links))
       .flatMap(([rel, links]) => links.map((link, index) => ({
         id: `${rel}-${index}`,
         rel,

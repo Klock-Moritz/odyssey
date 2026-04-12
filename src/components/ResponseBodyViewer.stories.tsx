@@ -1,12 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 
 import { ResponseBodyViewer } from './ResponseBodyViewer';
-import { TabGroupEntry } from './TabGroup';
-import { Typography } from '@mui/material';
-import { MediaType } from '../utils/media-type';
+import { csvResponse, halJsonResponse } from '../model/samples';
 
 const meta = {
   component: ResponseBodyViewer,
+  args: {
+    handleRequest: fn(),
+  }
 } satisfies Meta<typeof ResponseBodyViewer>;
 
 export default meta;
@@ -15,53 +17,12 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    response: {
-      headers: {
-        'content-type': 'text/plain',
-      },
-      contentType: new MediaType('text/plain'),
-      bodyUsed: false,
-      ok: false,
-      redirected: false,
-      status: 0,
-      statusText: '',
-      type: 'basic',
-      url: '',
-      text: 'Hello, world!',
-      links: [],
-      body: null,
-    },
-    viewers: [
-      {
-        predicate: () => true,
-        renderer: async (response) => (
-          <TabGroupEntry label="Text">
-            <Typography>{response.text}</Typography>
-          </TabGroupEntry>
-        )
-      }
-    ]
+    response: halJsonResponse
   }
 };
 
-export const NoViewer: Story = {
+export const CSVResponse: Story = {
   args: {
-    response: {
-      headers: {
-        "content-type": "application/json"
-      },
-      contentType: new MediaType("application/json"),
-      ok: false,
-      redirected: false,
-      status: 0,
-      statusText: '',
-      type: 'basic',
-      url: '',
-      bodyUsed: false,
-      body: null,
-      links: [],
-      text: "Lorem ipsum dolor sit amet.",
-    },
-    viewers: []
+    response: csvResponse
   }
 };

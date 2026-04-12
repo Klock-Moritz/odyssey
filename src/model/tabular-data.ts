@@ -8,7 +8,7 @@ export type TabularData<K extends PropertyKey, V> = {
 }
 
 export type WithTabularData<K extends PropertyKey, V> = {
-  tabularData: TabularData<K, V>,
+  table: TabularData<K, V>,
 }
 
 export function parseDelimitedText(text: string, delimiter: string, hasHeader: true): TabularData<string, string>;

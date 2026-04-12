@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import { JsonViewer } from './JsonViewer';
+import { halJsonResponse } from '../../model/samples';
 
 const meta = {
   component: JsonViewer,
@@ -12,11 +13,6 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    data: {
-      test: "Test",
-      array: [
-        "Test", "More tests"
-      ]
-    }
+    data: "data" in halJsonResponse ? halJsonResponse.data : {},
   }
 };

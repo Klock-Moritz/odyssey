@@ -1,5 +1,5 @@
 import { compose, condition, setProperty } from "../utils/functions";
-import { isHalResource, normalizeHalLinks, type HalLinks, type HalResource } from "../utils/hal";
+import { isHalResource, normalizeHalLinks, type HalLink, type HalLinks, type HalResource } from "../utils/hal";
 import type { WithData } from "./data";
 import type { WithJSON } from "./json";
 import { removeDuplicateLinks, type Link, type WithLinks } from "./links";
@@ -9,12 +9,15 @@ export type WithHal = {
   json: HalResource
 }
 
+export function convertHalLink(rel: string, link: HalLink): Link {
+  const { href, ...parameters } = link;
+  return { url: href, parameters: { ...parameters, rel } };
+}
+
 export function convertHalLinks(links: HalLinks): Link[] {
   return Object.entries(normalizeHalLinks(links)).flatMap(([rel, links]) =>
-    links.map((link) => {
-      const { href, ...parameters } = link;
-      return { url: href, parameters: { ...parameters, rel } };
-    }));
+    links.map((link) => convertHalLink(rel, link))
+  );
 }
 
 export function extractHalLinks<T extends WithHal & Partial<WithLinks>>(obj: T) {

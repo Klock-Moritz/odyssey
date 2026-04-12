@@ -20,3 +20,13 @@ export const Default: Story = {
     ]
   },
 };
+
+export const WithCustomValues: Story = {
+  args: {
+    children: [
+      <TabGroupEntry value="first" label="First"><Typography>First content</Typography></TabGroupEntry>,
+      <TabGroupEntry value="second" label="Second"><Typography>Second content</Typography></TabGroupEntry>,
+      <TabGroupEntry value="third" label="Third"><Typography>Third content</Typography></TabGroupEntry>,
+    ]
+  },
+};

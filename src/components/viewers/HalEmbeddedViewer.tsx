@@ -4,33 +4,28 @@ import utpl from "uri-templates";
 import { HalLink } from "../HalLink";
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import { TabGroup, type TabGroupEntryProps } from "../TabGroup";
 
 export type HalEmbeddedViewerProps = Omit<DataGridProps, 'columns' | 'rows'> & {
   resource: HalResource,
-  childViewer: (child: HalResource) => Promise<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>,
+  childViewerCreator: (child: HalResource) => Promise<React.ReactNode>,
   onLinkClick?: (href: string, rel: string, link: HalLinkType) => void,
-  onInnerLinkClick?: (url: string, options?: RequestInit) => void,
 }
 
 export const HalEmbeddedViewer: React.FC<HalEmbeddedViewerProps> = ({
   resource,
-  childViewer,
+  childViewerCreator,
   rowSelection = false,
   onLinkClick,
-  onInnerLinkClick,
   ...props
 }) => {
   const [selectedChild, setSelectedChild] = React.useState<HalResource>();
-  const [childViewers, setChildViewers] = React.useState<React.ReactElement<TabGroupEntryProps> | React.ReactElement<TabGroupEntryProps>[]>();
+  const [childViewer, setChildViewer] = React.useState<React.ReactNode>();
 
   React.useEffect(() => {
     if (selectedChild) {
-      childViewer(selectedChild).then(viewers => {
-        setChildViewers(viewers);
-      });
+      childViewerCreator(selectedChild).then(setChildViewer);
     } else {
-      setChildViewers(undefined);
+      setChildViewer(undefined);
     }
   }, [selectedChild]);
 
@@ -67,11 +62,7 @@ export const HalEmbeddedViewer: React.FC<HalEmbeddedViewerProps> = ({
         <Dialog open>
           <DialogTitle minWidth={500}>Embedded Resource</DialogTitle>
           <DialogContent>
-            {childViewers && (
-              <TabGroup>
-                {childViewers}
-              </TabGroup>
-            )}
+            {childViewer}
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setSelectedChild(undefined)}>Close</Button>

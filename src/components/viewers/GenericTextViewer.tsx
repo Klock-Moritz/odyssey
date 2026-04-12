@@ -5,8 +5,8 @@ import React from "react"
 
 export type GenericTextViewerProps = StackProps & {
   language?: string,
-  data: any,
-  onUpdateData?: (data: any, keepForEdit: boolean) => void,
+  data: string,
+  onUpdateData?: (data: string, keepForEdit: boolean) => void,
 }
 
 export const GenericTextViewer: React.FC<GenericTextViewerProps> = ({
@@ -23,15 +23,21 @@ export const GenericTextViewer: React.FC<GenericTextViewerProps> = ({
   return (
     <Stack {...props} height={height} gap={gap} alignItems={alignItems}>
       <ButtonGroup size="small">
-        <Button onClick={() => onUpdateData?.(value, false)}>
-          Send update (PUT)
-        </Button>
-        <Button onClick={() => onUpdateData?.(value, true)}>
-          Edit request
-        </Button>
-        <Button onClick={() => setValue(data)}>
-          Reset
-        </Button>
+        {onUpdateData && (
+          <Button onClick={() => onUpdateData?.(value, false)}>
+            Send update (PUT)
+          </Button>
+        )}
+        {onUpdateData && (
+          <Button onClick={() => onUpdateData?.(value, true)}>
+            Edit request
+          </Button>
+        )}
+        {onUpdateData && (
+          <Button onClick={() => setValue(data)}>
+            Reset
+          </Button>
+        )}
         <Button endIcon={<ContentCopy fontSize="small" />}
           onClick={() => navigator.clipboard.writeText(String(value))}>
           Copy
@@ -39,7 +45,8 @@ export const GenericTextViewer: React.FC<GenericTextViewerProps> = ({
       </ButtonGroup>
       <Editor language={language} value={value} options={{
         wordWrap: "on",
-      }} onChange={e => setValue(e)} />
+        readOnly: onUpdateData === undefined,
+      }} onChange={e => setValue(String(e))} />
     </Stack>
   )
 }

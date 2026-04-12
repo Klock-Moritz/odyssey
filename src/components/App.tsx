@@ -39,7 +39,7 @@ const App: React.FC<AppProps> = ({
         url={url} requestInit={requestInit}
         onUpdateUrl={setUrl} onUpdateRequestInit={setRequestInit} />
 
-      {response && <ResponseViewer response={response} onFetchRequest={onFetchRequest} />}
+      {response && <ResponseViewer response={response} handleRequest={onFetchRequest} />}
       {error !== undefined && <Alert severity="error">{String(error)}</Alert>}
     </Stack>
   )

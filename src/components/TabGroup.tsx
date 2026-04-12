@@ -13,8 +13,8 @@ export const TabGroup: React.FC<TabGroupProps> = ({
   children,
   ...props
 }) => {
-  const [value, setValue] = React.useState(0);
-  const childrenArray = Array.isArray(children) ? children: [children];
+  const childrenArray = Array.isArray(children) ? children : [children];
+  const [value, setValue] = React.useState(childrenArray[0].props.value ?? 0);
 
   return (
     <Stack gap={2}>
@@ -22,7 +22,12 @@ export const TabGroup: React.FC<TabGroupProps> = ({
         {children}
       </Tabs>
       <Box>
-        {value < childrenArray.length && childrenArray[value].props.children}
+        {childrenArray.map((child, index) => {
+          if ((child.props.value ?? index) === value) {
+            return child.props.children;
+          }
+          return null;
+        })}
       </Box>
     </Stack>
   )
