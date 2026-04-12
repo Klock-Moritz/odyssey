@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactoring of the ResponseViewer: now uses the new processing pipeline.
 - Renamed `lib` directory to `utils`.
 - HAL and schema/UI schema links now appear in the global link list.
-- Schema and UI schema can be loaded from any link with the appropriate rel
-  and type, not just from the main response.
+- Schema and UI schema can be loaded from any link with the appropriate `rel`
+  and `type`, not just from links in the response body.
+- Global link list now supports templated links.
 
 ### Fixed
 

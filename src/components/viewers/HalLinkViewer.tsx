@@ -1,7 +1,8 @@
 import { type HalLink as HalLinkType, type HalLinks, normalizeHalLinks } from "../../utils/hal";
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
-import { HalLink } from "../HalLink";
+import { Hyperlink } from "../Hyperlink";
 import { Link } from "@mui/material";
+import { convertHalLink } from "../../model/hal";
 
 export type HalLinkViewerProps = Omit<DataGridProps, 'columns' | 'rows'> & {
   links: HalLinks,
@@ -19,9 +20,10 @@ export const HalLinkViewer: React.FC<HalLinkViewerProps> = ({
       {
         field: "href", headerName: "URL",
         valueGetter: (value, row) => row.title ?? value,
-        renderCell: params => (
-          <HalLink link={params.row} onLinkClick={(href) => props.onLinkClick?.(href, params.row.rel, params.row)} />
-        ),
+        renderCell: params => {
+          const link = convertHalLink(params.row.rel, params.row);
+          return <Hyperlink href={link.url} parameters={link.parameters} onLinkClick={(href) => props.onLinkClick?.(href, params.row.rel, params.row)} />
+        },
         width: 300,
       },
       { field: "name", headerName: "Name" },

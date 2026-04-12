@@ -14,6 +14,7 @@ export type LinkParameters = {
   title?: string,
   type?: string,
   templated?: boolean,
+  deprecation?: string,
   [key: string]: string | number | boolean | undefined,
 }
 

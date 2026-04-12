@@ -1,9 +1,10 @@
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
 import type { HalResource, HalLink as HalLinkType } from "../../utils/hal";
 import utpl from "uri-templates";
-import { HalLink } from "../HalLink";
+import { Hyperlink } from "../Hyperlink";
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { convertHalLink } from "../../model/hal";
 
 export type HalEmbeddedViewerProps = Omit<DataGridProps, 'columns' | 'rows'> & {
   resource: HalResource,
@@ -37,9 +38,15 @@ export const HalEmbeddedViewer: React.FC<HalEmbeddedViewerProps> = ({
         { field: "name", headerName: "Name", valueGetter: (_value, row) => row.link?.name },
         {
           field: "link", headerName: "Link", valueGetter: (_value, row) => row.link?.href,
-          renderCell: params => params.row.link && (
-            <HalLink link={params.row.link} onLinkClick={(href) => onLinkClick?.(href, params.row.rel, params.row.link)} />
-          ),
+          renderCell: params => {
+            if (params.row.link) {
+              const link = convertHalLink(params.row.rel, params.row.link);
+              return (
+                <Hyperlink href={link.url} parameters={link.parameters} target="_blank" rel="noopener noreferrer"
+                  onLinkClick={href => onLinkClick?.(href, params.row.rel, params.row.link)} />
+              )
+            }
+          },
           width: 300,
         },
       ]} rows={Object.entries(resource._embedded)

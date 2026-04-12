@@ -1,6 +1,6 @@
 import { Stack, type StackProps } from "@mui/material";
 import { type Link } from "../model/links";
-import { Hyperlink } from "./Hyperlink";
+import { HyperlinkChip } from "./HyperlinkChip";
 
 export type HyperlinkViewerProps = StackProps & {
   links: Link[],
@@ -19,7 +19,7 @@ export const HyperlinkViewer: React.FC<HyperlinkViewerProps> = ({
   return (
     <Stack {...props} gap={gap} direction={direction} flexWrap={flexWrap} width={width}>
       {links.map((link, index) => (
-        <Hyperlink key={`link-${index}-${link.url}`} link={link} onLinkClick={() => onLinkClick?.(link)} />
+        <HyperlinkChip key={`link-${index}-${link.url}`} link={link} onLinkClick={onLinkClick} />
       ))}
     </Stack>
   )

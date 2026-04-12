@@ -36,7 +36,14 @@ export const Default: Story = {
           rel: "index",
           title: "API index"
         }
-      }
+      },
+      {
+        url: "https://example.com/api/items/{id}",
+        parameters: {
+          rel: "item",
+          templated: true,
+        }
+      },
     ]
   }
 };
