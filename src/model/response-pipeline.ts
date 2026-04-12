@@ -1,35 +1,36 @@
-import { setProperty } from "../utils/functions";
-import { createMediaType } from "./content-type";
+import { setProperty, resolve } from "../utils/functions";
+import { createMediaType, withContentTypeAsync } from "./content-type";
 import { replaceHeaders, withHeaderAsync, withHeaderSet } from "./headers";
-import { extractLinksFromHeader } from "./links";
+import { addData, takeLinkFromProperty } from "./data";
+import { extractLinksFromHeader, withFirstLinkSetAsync } from "./links";
 import { createResponseLike } from "./response-conversion";
 import { parseCsv, parseTsv } from "./tabular-data";
-import { readResponseBody, withStructuredTextSet } from "./text";
+import { readResponseBody, withStructuredTextAsync, withStructuredTextSet } from "./text";
+import { cleanHalResponse, extractHalLinks, withHal } from "./hal";
+import { followJSONLink } from "./json";
 
-export const responsePipeline = (response: Response) => Promise.resolve(response)
+const schemaLinkProperties = { rel: "described-by", type: "application/schema+json" };
+const uischemaLinkProperties = { rel: "stylesheet", type: "application/prs.json-forms-ui-schema+json" };
+
+export const responsePipeline = (response: Response) => resolve(response)
   .then(createResponseLike)
   .then(replaceHeaders)
   .then(withHeaderSet("link", "links", extractLinksFromHeader))
-  .then(withHeaderAsync("content-type", async (response, header) => Promise.resolve(response)
+  .then(withHeaderAsync("content-type", (response, header) => resolve(response)
     .then(setProperty("contentType", createMediaType(header)))
     .then(readResponseBody)
     .then(withStructuredTextSet("text", "tab-separated-values", "tsv", parseTsv))
-    .then(withStructuredTextSet("text", "csv", "csv", parseCsv)))
-  );
+    .then(withStructuredTextSet("text", "csv", "csv", parseCsv))
+    .then(withStructuredTextAsync("application", "json", (response, text) => resolve(response)
+      .then(addData("json", JSON.parse(text) as unknown))
+      .then(takeLinkFromProperty("$schema", schemaLinkProperties))
+      .then(takeLinkFromProperty("$uischema", uischemaLinkProperties))
+      .then(withContentTypeAsync("application", "hal", "json", response => resolve(response)
+        .then(cleanHalResponse)
+        .then(withHal(extractHalLinks)))))
+    ))
+  )
+  .then(withFirstLinkSetAsync(schemaLinkProperties, "schema", followJSONLink))
+  .then(withFirstLinkSetAsync(uischemaLinkProperties, "uischema", followJSONLink));
 
 export type ProcessedResponse = Awaited<ReturnType<typeof responsePipeline>>;
-
-const test = await responsePipeline(new Response("Hello World"));
-
-if ("links" in test) {
-  test.links.forEach(link => console.log(link.url));
-}
-
-
-if ("contentType" in test) {
-  console.log(test.contentType.structuredSyntaxSuffix);
-}
-
-if ("tsv" in test) {
-  console.log(test.tsv.hasHeader);
-}

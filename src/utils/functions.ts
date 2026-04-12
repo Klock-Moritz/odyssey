@@ -29,3 +29,28 @@ export function setProperty<T, K extends PropertyKey, V>(key: K, value: V): (inp
     [key]: value,
   }) as T & { [key in K]: V };
 }
+
+export function setPropertyAsync<T, K extends PropertyKey, V>(key: K, value: Promise<V>): (input: T) => Promise<T & { [key in K]: V }> {
+  return async (input: T) => ({
+    ...input,
+    [key]: await value,
+  }) as T & { [key in K]: V };
+}
+
+export function copyProperty<K extends PropertyKey, L extends PropertyKey, V, T extends { [key in K]: V }>(fromKey: K, toKey: L): (input: T) => T & { [key in L]: V } {
+  return (input: T) => setProperty(toKey, input[fromKey])(input) as T & { [key in L]: V };
+}
+
+export function removeProperty<T, K extends PropertyKey>(key: K): (input: T) => Omit<T, K> {
+  return (input: T) => {
+    const { [key]: _, ...rest } = input;
+    return rest;
+  }
+}
+
+export function log<T>(message: string): (input: T) => T {
+  return (input: T) => {
+    console.log(message, input);
+    return input;
+  }
+}

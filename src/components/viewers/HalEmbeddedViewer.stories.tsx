@@ -3,12 +3,19 @@ import { fn } from 'storybook/test';
 
 import { HalEmbeddedViewer } from './HalEmbeddedViewer';
 import { createHalViewer } from '../ResponseViewer';
+import { responsePipeline } from '../../model/response-pipeline';
 
 const meta = {
   component: HalEmbeddedViewer,
   args: {
     onLinkClick: fn(),
-    childViewer: async (child) => await createHalViewer(child),
+    childViewer: async (child: any) => await createHalViewer(await responsePipeline(
+      new Response(JSON.stringify(child), {
+        headers: {
+          "content-type": "application/hal+json",
+        }
+      }))
+    ),
   }
 } satisfies Meta<typeof HalEmbeddedViewer>;
 

@@ -1,5 +1,5 @@
 import { Link, Tooltip } from '@mui/material';
-import { type Link as LinkType } from '../model/links';
+import { type LinkParameters, type Link as LinkType } from '../model/links';
 import { LabeledValueChip, type LabeledValueChipProps } from './LabeledValueChip';
 
 export type HyperlinkProps = Omit<LabeledValueChipProps, 'label' | 'value'> & {
@@ -12,7 +12,7 @@ export const Hyperlink: React.FC<HyperlinkProps> = ({
   onLinkClick,
   ...props
 }) => {
-  let additionalInfo: Record<string, string | undefined> = { ...link.parameters };
+  let additionalInfo: Partial<LinkParameters> = { ...link.parameters };
   if ("title" in link.parameters) {
     delete additionalInfo.title;
   } else {

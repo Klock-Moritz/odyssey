@@ -9,11 +9,11 @@ import type { JsonSchema, UISchemaElement } from "@jsonforms/core";
 import { TabGroupEntry, type TabGroupEntryProps } from "./TabGroup";
 import { HyperlinkViewer } from "./HyperlinkViewer";
 import { getStructuredMediaTypePredicate, MediaType } from "../utils/media-type";
-import { isHalResource, normalizeHalLinks, type HalResource } from "../utils/hal";
+import { normalizeHalLinks } from "../utils/hal";
 import { HalLinkViewer } from "./viewers/HalLinkViewer";
 import { HalEmbeddedViewer } from "./viewers/HalEmbeddedViewer";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { ProcessedResponse } from "../model/response-pipeline";
+import { responsePipeline, type ProcessedResponse } from "../model/response-pipeline";
 import type { TabularData } from "../model/tabular-data";
 import { TableViewer } from "./viewers/TableViewer";
 
@@ -49,11 +49,11 @@ export const ResponseViewer: React.FC<ResponseViewerProps> = ({
   }[]>(() => [
     {
       predicate: mt => mt.type === "application" && mt.innerSubtype === "hal" && mt.structuredSyntaxSuffix === "json",
-      renderer: async response => await createHalViewer(JSON.parse(response.text ?? "null"), onFetchRequest, updateDataHandler)
+      renderer: async response => await createHalViewer(response, onFetchRequest, updateDataHandler)
     },
     {
       predicate: getStructuredMediaTypePredicate("application", "json"),
-      renderer: async response => await createJsonViewers(JSON.parse(response.text ?? "null"), undefined, updateDataHandler)
+      renderer: async response => await createJsonViewers(response, updateDataHandler)
     },
     {
       predicate: getStructuredMediaTypePredicate("text", "csv"),
@@ -127,34 +127,19 @@ function createTabularViewers(data: string, tabluarData: TabularData<string | nu
   ];
 }
 
-async function createJsonViewers(data: any, rawData?: any, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
-  const rawJsonString = JSON.stringify(rawData ?? data, undefined, 2);
-  let schema: JsonSchema | undefined = undefined;
-  let uischema: UISchemaElement | undefined = undefined;
-
-  if ("$schema" in data && typeof data.$schema === "string") {
-    try {
-      schema = await fetch(data.$schema).then(response => response.json())
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  if ("$uischema" in data && typeof data.$uischema === "string") {
-    try {
-      uischema = await fetch(data.$uischema).then(response => response.json())
-    } catch (error) {
-      console.log(error);
-    }
-  }
+async function createJsonViewers(response: ProcessedResponse, onUpdateData?: (data: any, keepForEdit: boolean) => void) {
+  const rawJsonString = "json" in response ? JSON.stringify(response.json, null, 2) : undefined;
+  const schema: JsonSchema | undefined = "schema" in response && typeof response.schema === "object" ? response.schema : undefined;
+  const uischema: UISchemaElement | undefined = "uischema" in response && typeof response.uischema === "object" ? response.uischema : undefined;
+  const data = "data" in response ? response.data : undefined;
 
   return [
-    (typeof data === "object" && Object.keys(data).length === 0) && !schema && !uischema ? null : (
+    (typeof data === "object" && (data === null || Object.keys(data).length === 0)) && !schema && !uischema ? null : (
       <TabGroupEntry label="Form">
-        <JsonViewer data={cleanJsonObject(data)} schema={schema} uischema={uischema} />
+        <JsonViewer data={data} schema={schema} uischema={uischema} />
       </TabGroupEntry>
     ),
-    createTextViewer("Raw JSON", rawJsonString, "json", onUpdateData)
+    rawJsonString !== undefined ? createTextViewer("Raw JSON", rawJsonString, "json", onUpdateData) : null
   ].filter(viewer => viewer !== null);
 }
 
@@ -166,24 +151,27 @@ function createTextViewer(label: string, data: any, language?: string, onUpdateD
   )
 }
 
-export async function createHalViewer(rawData: any,
+export async function createHalViewer(response: ProcessedResponse,
   onFetchRequest?: (url: string, options?: RequestInit) => void,
   onUpdateData?: (data: any, keepForEdit: boolean) => void) {
-  if (isHalResource(rawData)) {
-    const data = cleanHalObject(rawData);
-    const viewers = await createJsonViewers(data, rawData, onUpdateData);
+  if ("isHalResource" in response) {
+    const viewers = await createJsonViewers(response, onUpdateData);
 
-    if (rawData._embedded) {
+    if (response.json._embedded) {
       viewers.splice(0, 0, (
         <TabGroupEntry label="Embedded" key="hal-embedded">
-          <HalEmbeddedViewer resource={rawData} onLinkClick={(href, _rel, link) =>
+          <HalEmbeddedViewer resource={response.json} onLinkClick={(href, _rel, link) =>
             onFetchRequest?.(href, createRequestInitFromLink(link))}
-            childViewer={child => createHalViewer(child, onFetchRequest, onUpdateData)} />
+            childViewer={async child => createHalViewer(await responsePipeline(new Response(JSON.stringify(child), {
+              headers: {
+                "content-type": "application/hal+json",
+              }
+            })), onFetchRequest, onUpdateData)} />
         </TabGroupEntry>
       ));
     }
-    if (rawData._links) {
-      const links = normalizeHalLinks(rawData._links);
+    if (response.json._links) {
+      const links = normalizeHalLinks(response.json._links);
       viewers.splice(0, 0, (
         <TabGroupEntry label="Links" key="hal-links">
           <HalLinkViewer links={links}
@@ -195,32 +183,6 @@ export async function createHalViewer(rawData: any,
 
     return viewers;
   } else {
-    return await createJsonViewers(rawData, rawData, onUpdateData);
+    return await createJsonViewers(response, onUpdateData);
   }
-}
-
-function cleanHalObject(data: HalResource): Omit<HalResource, "_links"> {
-  const { _links, _embedded, ...rest } = data;
-
-  if (_embedded) {
-    const cleanedEmbedded: { [key: string]: HalResource | HalResource[] } = {};
-    for (const key in _embedded) {
-      if (Array.isArray(_embedded[key])) {
-        cleanedEmbedded[key] = _embedded[key].map(cleanHalObject);
-      } else {
-        cleanedEmbedded[key] = cleanHalObject(_embedded[key]);
-      }
-    }
-    return { ...rest, _embedded: cleanedEmbedded };
-  } else {
-    return rest;
-  }
-}
-
-function cleanJsonObject(data: any): Omit<any, "$schema" | "$uischema"> {
-  if (typeof data === "object" && data !== null) {
-    const { $schema, $uischema, ...rest } = data;
-    return rest;
-  }
-  return data;
 }

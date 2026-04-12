@@ -59,3 +59,7 @@ export function getStructuredMediaTypePredicate(type: string, suffix: string) {
     (mediaType.structuredSyntaxSuffix === null && mediaType.innerSubtype === suffix)
   );
 }
+
+export function getMediaTypePredicate(type: string, innerSubtype: string, suffix: string | null) {
+  return (mediaType: MediaType) => mediaType.type === type && mediaType.innerSubtype === innerSubtype && mediaType.structuredSyntaxSuffix === suffix;
+}
