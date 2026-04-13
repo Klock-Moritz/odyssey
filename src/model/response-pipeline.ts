@@ -1,12 +1,12 @@
-import { setProperty, resolve } from "../utils/functions";
+import { compose, setProperty, resolve, withProperty, getProperty } from "../utils/functions";
 import { createMediaType, withContentTypeAsync } from "./content-type";
-import { replaceHeaders, withHeaderAsync, withHeaderSet } from "./headers";
+import { replaceHeaders, withHeader, withHeaderAsync, withHeaderSet } from "./headers";
 import { addData, takeLinkFromProperty } from "./data";
-import { extractLinksFromHeader, withFirstLinkSetAsync } from "./links";
+import { addMissingSelfLink, extractLinksFromHeader, withFirstLinkSet, withFirstLinkSetAsync, type Link, type WithLinks } from "./links";
 import { createResponseLike } from "./response-conversion";
 import { parseCsv, parseTsv } from "./tabular-data";
 import { readResponseBody, withStructuredTextAsync, withStructuredTextSet } from "./text";
-import { cleanHalResponse, extractHalLinks, withHal } from "./hal";
+import { addImplicitSelfLinksToResponse, cleanHalResponse, extractHalLinks, withHal } from "./hal";
 import { followJSONLink } from "./json";
 
 const schemaLinkProperties = { rel: "described-by", type: "application/schema+json" };
@@ -27,10 +27,13 @@ export const responsePipeline = (response: Response) => resolve(response)
       .then(takeLinkFromProperty("$uischema", uischemaLinkProperties))
       .then(withContentTypeAsync("application", "hal", "json", response => resolve(response)
         .then(cleanHalResponse)
-        .then(withHal(extractHalLinks)))))
+        .then(withHal(compose(extractHalLinks, addImplicitSelfLinksToResponse)))))
     ))
-  )
+  ))
   .then(withFirstLinkSetAsync(schemaLinkProperties, "schema", followJSONLink))
-  .then(withFirstLinkSetAsync(uischemaLinkProperties, "uischema", followJSONLink));
+  .then(withFirstLinkSetAsync(uischemaLinkProperties, "uischema", followJSONLink))
+  .then(withHeader("location", addMissingSelfLink))
+  .then(response => withProperty<"url", string, typeof response, typeof response & WithLinks>("url", addMissingSelfLink)(response))
+  .then(withFirstLinkSet({ rel: "self" }, "selfLink", getProperty<Link, "url", string>("url")));
 
 export type ProcessedResponse = Awaited<ReturnType<typeof responsePipeline>>;

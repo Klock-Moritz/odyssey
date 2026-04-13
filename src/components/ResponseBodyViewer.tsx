@@ -25,18 +25,16 @@ export const ResponseBodyViewer: React.FC<ResponseBodyViewerProps> = ({
   response,
   viewers = defaultViewers,
   handleRequest = () => { },
-}) => {
-  return (
-    <TabGroup sx={{ borderBottom: 1, borderColor: 'divider' }}>
-      {viewers.map(({ title, renderer }) => ({ title, content: renderer(response, handleRequest) }))
-        .filter(({ content }) => content !== null).map(({ title, content }) => (
-          <TabGroupEntry value={title} key={`response-body-${title}`} label={title}>
-            {content}
-          </TabGroupEntry>
-        ))}
-    </TabGroup>
-  )
-}
+}) => (
+  <TabGroup sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    {viewers.map(({ title, renderer }) => ({ title, content: renderer(response, handleRequest) }))
+      .filter(({ content }) => content !== null).map(({ title, content }) => (
+        <TabGroupEntry value={title} key={`response-body-${title}`} label={title}>
+          {content}
+        </TabGroupEntry>
+      ))}
+  </TabGroup>
+)
 
 export const defaultViewers: ViewerDefinition[] = [
   {
@@ -55,17 +53,17 @@ export const defaultViewers: ViewerDefinition[] = [
   },
   {
     title: "Links",
-    renderer: (response, handleRequest) => "isHalResource" in response && response.json._links ? (
-      <HalLinkViewer links={response.json._links} onLinkClick={handleHalLinkClick(handleRequest)} />
+    renderer: (response, handleRequest) => "hal" in response && response.hal._links ? (
+      <HalLinkViewer links={response.hal._links} onLinkClick={handleHalLinkClick(handleRequest)} />
     ) : null
   },
   {
     title: "Embedded",
-    renderer: (response, handleRequest) => "isHalResource" in response && response.json._embedded ? (
-      <HalEmbeddedViewer resource={response.json} onLinkClick={handleHalLinkClick(handleRequest)}
+    renderer: (response, handleRequest) => "hal" in response && response.hal._embedded ? (
+      <HalEmbeddedViewer resource={response.hal} onLinkClick={handleHalLinkClick(handleRequest)}
         childViewerCreator={async (child) => (
           <ResponseBodyViewer viewers={defaultViewers} handleRequest={handleRequest}
-            response={await responsePipeline(new Response(JSON.stringify(child), response))} />)} />
+            response={await responsePipeline(new Response(JSON.stringify(child), { headers: { "content-type": "application/hal+json" } }))} />)} />
     ) : null
   },
   {
@@ -99,7 +97,7 @@ function handleHalLinkClick(handleRequest: RequestHandler) {
 }
 
 function handleUpdate(handleRequest: RequestHandler, response: ProcessedResponse) {
-  return handleBodyRequest(handleRequest, response.url, {
+  return handleBodyRequest(handleRequest, "selfLink" in response ? response.selfLink : response.url, {
     method: "PUT",
     headers: {
       "Content-Type": "content-type" in response.headers ? response.headers["content-type"] : "application/octet-stream",

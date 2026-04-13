@@ -1,4 +1,4 @@
-import { resolve, setProperty, setPropertyAsync } from "../utils/functions";
+import { resolve, setProperty, setPropertyAsync, unless } from "../utils/functions";
 import parseLinkHeader from "../utils/parse-link-header";
 
 export type WithLinks = {
@@ -71,6 +71,17 @@ export function withLinks<T, U>(fn: (obj: T, links: Link[]) => U): (obj: T) => U
   return (obj: T) => hasLinks(obj) ? fn(obj, obj.links) : fn(obj, []);
 }
 
+export function hasLinkWithRel(rel: string): <T>(obj: T) => obj is T & WithLinks {
+  return <T>(obj: T): obj is T & WithLinks => hasLinks(obj) && obj.links.some(link => link.parameters.rel === rel);
+}
+
+export function addLinks<T>(...links: Link[]): (obj: T) => T & WithLinks {
+  return (obj: T) => {
+    const existingLinks = hasLinks(obj) ? obj.links : [];
+    return { ...obj, links: removeDuplicateLinks([...existingLinks, ...links]) };
+  }
+}
+
 export function withFilteredLinks<T, U>(filter: Partial<LinkParameters>, fn: (obj: T, links: Link[]) => U): (obj: T) => U {
   return withLinks((obj: T, links: Link[]) => {
     const filteredLinks = links.filter(link => Object.entries(filter).every(([key, value]) => link.parameters[key] === value));
@@ -105,4 +116,8 @@ export function followLink(link: Link): Promise<Response | null> {
       "Accept-Language": link.parameters.hreflang ?? "*",
     },
   }).then(response => response.ok ? response : null, () => null);
+}
+
+export function addMissingSelfLink<T>(obj: T, url: string): T & WithLinks {
+  return unless(hasLinkWithRel("self"), addLinks({ url, parameters: { rel: "self" } }))(obj) as T & WithLinks;
 }

@@ -26,46 +26,14 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    resource: "isHalResource" in halJsonResponse ? halJsonResponse.json : {},
+    resource: "hal" in halJsonResponse ? halJsonResponse.hal : {},
   }
 };
 
 export const ComplexResources: Story = {
   args: {
     resource: {
-      _links: {
-        item: {
-          href: "https://example.com/api/items/{id}",
-          templated: true,
-        }
-      },
       _embedded: {
-        item: [
-          {
-            id: 1001,
-            name: "Notebook",
-            category: "Stationery",
-            inStock: true
-          },
-          {
-            id: 1002,
-            name: "Pen",
-            category: "Stationery",
-            inStock: true
-          },
-          {
-            id: 1003,
-            name: "Water Bottle",
-            category: "Accessories",
-            inStock: true
-          },
-          {
-            id: 1004,
-            name: "Backpack",
-            category: "Bags",
-            inStock: false
-          },
-        ],
         author: {
           _links: {
             self: {

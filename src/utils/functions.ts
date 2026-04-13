@@ -11,6 +11,12 @@ export function condition<T, U>(predicate: (input: T) => boolean,
   return choose(predicate, then, identity);
 }
 
+export function unless<T, U>(predicate: (input: T) => boolean,
+  then: (input: T) => U): (input: T) => U | T {
+
+  return choose(predicate, identity, then);
+}
+
 export function compose<T, U, V>(f: (input: T) => U, g: (input: U) => V): (input: T) => V {
   return (input: T) => g(f(input));
 }
@@ -37,6 +43,10 @@ export function setPropertyAsync<T, K extends PropertyKey, V>(key: K, value: Pro
   }) as T & { [key in K]: V };
 }
 
+export function getProperty<T extends Record<K, V>, K extends keyof T, V>(key: K): (input: T) => V {
+  return (input: T) => input[key];
+}
+
 export function copyProperty<K extends PropertyKey, L extends PropertyKey, V, T extends { [key in K]: V }>(fromKey: K, toKey: L): (input: T) => T & { [key in L]: V } {
   return (input: T) => setProperty(toKey, input[fromKey])(input) as T & { [key in L]: V };
 }
@@ -53,4 +63,12 @@ export function log<T>(message: string): (input: T) => T {
     console.log(message, input);
     return input;
   }
+}
+
+export function withProperty<K extends PropertyKey, V, T extends { [key in K]: V }, U>(key: K, fn: (obj: T, value: V) => U): (obj: T) => U {
+  return (obj: T) => fn(obj, obj[key]);
+}
+
+export function applyToProperty<K extends PropertyKey, V, T extends { [key in K]: V }, U>(key: K, fn: (value: V) => U): (obj: T) => T & { [key in K]: U } {
+  return (obj: T) => setProperty<T, K, U>(key, fn(obj[key]))(obj);
 }

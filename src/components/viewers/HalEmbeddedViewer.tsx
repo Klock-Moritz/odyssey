@@ -1,6 +1,5 @@
 import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
 import type { HalResource, HalLink as HalLinkType } from "../../utils/hal";
-import utpl from "uri-templates";
 import { Hyperlink } from "../Hyperlink";
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
@@ -53,7 +52,9 @@ export const HalEmbeddedViewer: React.FC<HalEmbeddedViewerProps> = ({
         .map(([rel, child]) => [rel, Array.isArray(child) ? child : [child]] as [string, HalResource[]])
         .flatMap(([rel, children]) => children.map((child, index) => ({
           id: `${rel}-${index}`,
-          ...getChildRow(resource, child, rel)
+          rel,
+          child,
+          link: getFirstLink(child._links?.self),
         })))} onRowClick={(params, event) => {
           const target = event.target;
           if (target && "href" in target) {
@@ -80,25 +81,6 @@ export const HalEmbeddedViewer: React.FC<HalEmbeddedViewerProps> = ({
   ) : undefined;
 }
 
-function getChildRow(resource: HalResource, child: HalResource, rel: string) {
-  let link = child._links?.self;
-  if (!link && resource._links && rel in resource._links) {
-    link = resource._links[rel];
-  }
-  if (Array.isArray(link)) {
-    link = link[0];
-  }
-  if (link && link.templated) {
-    link = {
-      ...link,
-      href: utpl(link.href).fill(child),
-      templated: false,
-    };
-  }
-
-  return {
-    rel,
-    child,
-    link,
-  }
+function getFirstLink(link: HalLinkType | HalLinkType[] | undefined): HalLinkType | undefined {
+  return Array.isArray(link) ? link[0] : link;
 }

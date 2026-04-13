@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Schema and UI schema can be loaded from any link with the appropriate `rel`
   and `type`, not just from links in the response body.
 - Global link list now supports templated links.
+- Implicit `self` link is now infered from `location` header or the
+  response URL if no explicit `self` link is present.
+- Link for posting updates now taken from `self` links.
 - Build now uses relative paths, allowing it to be served from any base URL.
 - GitHub Pages build now includes storybook assets.
 
