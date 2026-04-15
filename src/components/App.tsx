@@ -35,9 +35,8 @@ const App: React.FC<AppProps> = ({
 
   return (
     <Stack gap={2}>
-      <RequestCreator onRequest={onFetchRequest}
-        url={url} requestInit={requestInit}
-        onUpdateUrl={setUrl} onUpdateRequestInit={setRequestInit} />
+      <RequestCreator handleRequest={onFetchRequest}
+        url={url} requestInit={requestInit} />
 
       {response && <ResponseViewer response={response} handleRequest={onFetchRequest} />}
       {error !== undefined && <Alert severity="error">{String(error)}</Alert>}

@@ -7,6 +7,7 @@ import { HeaderEditor, type HeaderEditorProps } from "./HeaderEditor";
 import { RequestBodyEditor, type RequestBodyEditorProps } from "./RequestBodyEditor";
 import { TabGroupEntry } from "./TabGroup";
 import { GenericTextEditor } from "./editors/GenericTextEditor";
+import type { RequestHandler } from "./ResponseViewer";
 
 export type RequestCreatorProps = StackProps & {
   requestMethodSelect?: RequestMethodSelectProps,
@@ -14,11 +15,9 @@ export type RequestCreatorProps = StackProps & {
   button?: ButtonProps,
   requestBodyEditor?: RequestBodyEditorProps,
   headerEditor?: HeaderEditorProps,
-  onRequest?: (url: string, options: RequestInit) => void;
   url?: string,
   requestInit?: RequestInit,
-  onUpdateUrl?: (url: string) => void,
-  onUpdateRequestInit?: (init: RequestInit) => void,
+  handleRequest?: RequestHandler,
 }
 
 export const RequestCreator: React.FC<RequestCreatorProps> = ({
@@ -27,12 +26,10 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
   button,
   requestBodyEditor,
   headerEditor,
-  onRequest,
   gap = 2,
   url,
   requestInit,
-  onUpdateUrl,
-  onUpdateRequestInit,
+  handleRequest,
   ...props
 }) => {
   const [internalUrl, setInternalUrl] = React.useState<string>(
@@ -48,13 +45,13 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
   const realUrl = url || internalUrl;
   const realRequestInit = requestInit || internalRequestInit;
 
-  function updateRequestInit(updates: Partial<RequestInit>) {
+  function updateRequestInit(updates: Partial<RequestInit>, keepForEdit: boolean = true) {
     const newRequestInit = { ...realRequestInit, ...updates };
     if (!requestInit) {
       setInternalRequestInit(newRequestInit);
     }
-    if (onUpdateRequestInit) {
-      onUpdateRequestInit(newRequestInit);
+    if (handleRequest) {
+      handleRequest(realUrl, newRequestInit, keepForEdit);
     }
   }
 
@@ -62,13 +59,13 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
     if (!url) {
       setInternalUrl(newUrl);
     }
-    if (onUpdateUrl) {
-      onUpdateUrl(newUrl);
+    if (handleRequest) {
+      handleRequest(newUrl, realRequestInit, true);
     }
   }
 
   function submitForm() {
-    onRequest?.(realUrl, realRequestInit);
+    handleRequest?.(realUrl, realRequestInit, false);
   }
 
   function getHeaders(...updates: ((headers: Headers) => void)[]): Headers {
@@ -139,20 +136,19 @@ export const RequestCreator: React.FC<RequestCreatorProps> = ({
               contentType: getHeaders().get("content-type")!,
               body: realRequestInit.body || "",
             } : null}
-            onUpdateBodyContent={content => {
+            onUpdateBodyContent={(content, directRequest) => {
               if (content) {
                 updateRequestInit({
                   headers: getHeaders(headers => headers.set("content-type", content.contentType)),
                   body: content.body
-                });
+                }, directRequest);
               } else {
                 updateRequestInit({
                   headers: getHeaders(headers => headers.delete("content-type")),
                   body: undefined
-                });
+                }, directRequest);
               }
-            }}
-            onDirectRequest={submitForm} />
+            }} />
         </Stack>
       </form>
       <HeaderEditor value={getHeaders()} onUpdateHeaders={headers => updateRequestInit({ headers })} />

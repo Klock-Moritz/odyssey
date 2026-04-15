@@ -25,7 +25,6 @@ const meta = {
         },
       }
     ],
-    onDirectRequest: fn(),
   }
 } satisfies Meta<typeof RequestBodyEditor>;
 

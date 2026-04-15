@@ -6,9 +6,7 @@ import { RequestCreator } from './RequestCreator';
 const meta = {
   component: RequestCreator,
   args: {
-    onRequest: fn(),
-    onUpdateUrl: fn(),
-    onUpdateRequestInit: fn(),
+    handleRequest: fn(),
   }
 } satisfies Meta<typeof RequestCreator>;
 

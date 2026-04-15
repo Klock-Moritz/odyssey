@@ -11,9 +11,8 @@ export type BodyContent = {
 export type RequestBodyEditorProps = ButtonGroupProps & {
   bodyContent?: BodyContent | null,
   defaultBodyContent?: BodyContent | null,
-  onUpdateBodyContent?: (content: BodyContent | null) => void,
+  onUpdateBodyContent?: (content: BodyContent | null, keepForEdit: boolean) => void,
   editors: EditorDefinition[],
-  onDirectRequest?: () => void,
 }
 
 export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
@@ -21,19 +20,18 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
   defaultBodyContent,
   onUpdateBodyContent,
   editors,
-  onDirectRequest,
   ...props
 }) => {
   const [open, setOpen] = React.useState(false);
   const [internalContent, setInternalContent] = React.useState(defaultBodyContent ?? null);
   const realContent = bodyContent !== undefined ? bodyContent : internalContent;
 
-  function updateContent(content: BodyContent | null) {
+  function updateContent(content: BodyContent | null, keepForEdit: boolean) {
     if (!bodyContent) {
       setInternalContent(content);
     }
     if (onUpdateBodyContent) {
-      onUpdateBodyContent(content);
+      onUpdateBodyContent(content, keepForEdit);
     }
   }
 
@@ -45,7 +43,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
         </Button>
         {realContent && (
           <Button aria-label="delete body"
-            onClick={() => updateContent(null)}>
+            onClick={() => updateContent(null, true)}>
             <Clear />
           </Button>
         )}
@@ -53,7 +51,7 @@ export const RequestBodyEditor: React.FC<RequestBodyEditorProps> = ({
       {open && (
         <RequestBodyEditDialog open bodyContent={realContent}
           onSubmitted={updateContent} onClose={() => setOpen(false)}
-          editors={editors} onDirectRequest={onDirectRequest} />
+          editors={editors} />
       )}
     </>
   )

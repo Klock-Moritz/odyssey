@@ -16,10 +16,9 @@ export type EditorDefinition = {
 
 export type RequestBodyEditDialogProps = DialogProps & {
   bodyContent: BodyContent | null,
-  onSubmitted?: (content: BodyContent) => void,
+  onSubmitted?: (content: BodyContent, keepForEdit: boolean) => void,
   onClose?: () => void,
   editors: EditorDefinition[],
-  onDirectRequest?: () => void,
 }
 
 export const RequestBodyEditDialog: React.FC<RequestBodyEditDialogProps> = ({
@@ -27,7 +26,6 @@ export const RequestBodyEditDialog: React.FC<RequestBodyEditDialogProps> = ({
   onSubmitted = () => { },
   onClose = () => { },
   editors,
-  onDirectRequest,
   ...props
 }) => {
   const [contentType, setContentType] = React.useState(bodyContent?.contentType);
@@ -61,14 +59,11 @@ export const RequestBodyEditDialog: React.FC<RequestBodyEditDialogProps> = ({
     }
   }, [bodyContent]);
 
-  function createSubmissionFunction(directRequest: boolean) {
+  function createSubmissionFunction(keepForEdit: boolean) {
     return () => {
       if (body && contentType) {
-        onSubmitted({ body, contentType });
+        onSubmitted({ body, contentType }, keepForEdit);
         onClose();
-        if (directRequest) {
-          onDirectRequest?.();
-        }
       }
     }
   }
@@ -100,8 +95,8 @@ export const RequestBodyEditDialog: React.FC<RequestBodyEditDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button disabled={!body || !contentType} onClick={createSubmissionFunction(false)}>Submit</Button>
-        <Button disabled={!body || !contentType} variant="contained" onClick={createSubmissionFunction(true)}>Submit + Send</Button>
+        <Button disabled={!body || !contentType} onClick={createSubmissionFunction(true)}>Submit</Button>
+        <Button disabled={!body || !contentType} variant="contained" onClick={createSubmissionFunction(false)}>Submit + Send</Button>
       </DialogActions>
     </Dialog>
   )
