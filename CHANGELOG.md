@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implicit `self` link is now infered from `location` header or the
   response URL if no explicit `self` link is present.
 - Link for posting updates now taken from `self` links.
+- URL text field now accepts any text, which includes relative URLs.
 - Build now uses relative paths, allowing it to be served from any base URL.
 - GitHub Pages build now includes storybook assets.
 

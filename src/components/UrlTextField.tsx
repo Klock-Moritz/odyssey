@@ -7,6 +7,6 @@ export const UrlTextField: React.FC<UrlTextFieldProps> = ({
   ...props
 }) => {
   return (
-    <TextField {...props} type={props.type ?? "url"} placeholder={props.placeholder ?? "https://"} />
+    <TextField {...props} type={props.type ?? "text"} placeholder={props.placeholder ?? "https://"} />
   )
 }
